@@ -1,7 +1,5 @@
 rm(list = ls())
 
-setwd('C:/Users/RPHC5/Documents/R Scripts/CPI')
-
 library('tidyverse')
 library('readxl')
 
