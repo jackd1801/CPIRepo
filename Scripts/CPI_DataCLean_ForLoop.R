@@ -2,6 +2,8 @@ rm(list = ls())
 
 library('tidyverse')
 library('readxl')
+install.packages('plotly')
+library('plotly')
 
 cpi_data <- function(file_name){
 Sources = c("Rural", "Urban", "All Rwanda")
