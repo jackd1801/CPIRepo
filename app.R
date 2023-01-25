@@ -13,10 +13,11 @@ library(shiny)
 library(tidyverse)
 library(lubridate)
 library(plotly)
-#setwd('C:/Users/RPHC5/Documents/Coding/R Scripts/CPI')
-data <- read.csv('november.csv')%>%mutate(Date=as.Date(Date), year = year(Date), month = month(Date, label=TRUE, abbr=FALSE))
+source('Scripts/CPIfunctions.R')
 
-year_range <- data %>% select(year) %>% distinct()
+filename = 'Data/CPI_time_series_November_2022.xls'
+data <- cpi_data(filename)
+year_range <- data %>% select(Year) %>% distinct()
 month_range <- c("No month selected", month.name)
 productc <- data %>% select(Products) %>% distinct()
 sourcec <- data %>% select(Source) %>% distinct() 
@@ -43,10 +44,7 @@ server <- function(input, output) {
     data1 <- reactive({cpi_clean(data, input$month, input$years, input$source, input$product)
     })
     
-    output$plot1<- renderPlotly({plot_ly(data1(), x = ~Date, y = ~Index, type = 'scatter', mode = 'lines', color=~Source)%>%
-                                  layout(title = input$product,
-                                  xaxis = list(title = ""),
-                                  yaxis = list (title = "Index, February 2014 = 100"))})
+    output$plot1<- renderPlotly({cpi_plot(data1())})
     }
 
 # Run the application 
