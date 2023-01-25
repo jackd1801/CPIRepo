@@ -2,7 +2,6 @@ rm(list = ls())
 
 library('tidyverse')
 library('readxl')
-install.packages('plotly')
 library('plotly')
 
 cpi_data <- function(file_name){
@@ -27,7 +26,23 @@ combined = do.call(rbind, datalist)
 return(combined)
 }
 
-cpi_plot <- function(dataframe, inflation){}
+
+
+cpi_clean <- function(data, monthi, yeari, sourcei, producti){
+  if (monthi %in% month.name){
+    df <- data %>% 
+      filter(month==monthi) %>%
+      filter(Products==producti)%>%
+      filter(Source %in% sourcei)%>%
+      filter(year >= min(yeari) & year <= max(yeari))}
+    else (df <- data %>% 
+          filter(Products==producti)%>%
+          filter(Source %in% sourcei)%>%
+          filter(year >= min(yeari) & year <= max(yeari)))
+  return (df)
+}
+
+
 
 
 
