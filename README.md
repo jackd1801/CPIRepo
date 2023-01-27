@@ -1,4 +1,5 @@
-# CPIRepo
-working on rwanda cpi data
+This repository contains an R Shiny app to present the Rwandan CPI data. 
 
-Change to show pull in RStudio
+This is based on the Tableau dashboard already produced by NISR found here: https://public.tableau.com/app/profile/data.revolution.and.big.data.unit/viz/ConsumerPriceIndexofRwanda/CPI
+
+

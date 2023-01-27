@@ -4,7 +4,7 @@ library('plotly')
 
 
 
-cpi_data <- function(filename){
+inflation_data <- function(filename){
   Sources = c("Rural", "Urban", "All Rwanda")
   datalist = list()
   for (i in Sources) {
@@ -21,14 +21,20 @@ cpi_data <- function(filename){
              Year = year(Date),
              Month = month(Date, label = TRUE, abbr = FALSEs),
              Source = i)%>%
-      select(Products, Weights, Date, Month, Year, Source, Index)
+      group_by(Products)%>%
+      arrange(Date)%>%
+      mutate(IndexLag = lag(Index),
+             InflationMonth = ((IndexLag+Index)/IndexLag))%>%
+      ungroup()%>%
+      group_by(Products, )
+      select(Products, Weights, Date, Month, Year, Source, Inflation)
     datalist[[i]] <- data
   }
   combined_data = do.call(rbind, datalist)
   return(combined_data)
 }
 
-cpi_clean <- function(data, monthi, yeari, sourcei, producti){
+inflation_clean <- function(data, monthi, yeari, sourcei, producti){
   df <- data %>% 
     filter(Products==producti) %>%
     filter(Source %in% sourcei) %>%
@@ -41,12 +47,11 @@ cpi_clean <- function(data, monthi, yeari, sourcei, producti){
 
 
 
-cpi_plot <- function(data){
+inflation_plot <- function(data){
   plot.title = unique(data$Products)
-  plot = plot_ly(data, x = ~Date, y = ~Index, type = 'scatter', mode = 'lines', color=~Source)%>%
+  plot = plot_ly(data, x = ~Date, y = ~Inflation, type = 'scatter', mode = 'lines', color=~Source)%>%
     layout(title = plot.title,
            xaxis = list(title = ""),
            yaxis = list (title = "Index, February 2014 = 100"))
   return (plot)
 }
-

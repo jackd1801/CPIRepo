@@ -52,3 +52,33 @@ source = c("All Rwanda", "Rural")
 product = "GENERAL INDEX (CPI)"
 
 clean <- cpi_clean(data, month, year, source, product)
+
+
+Sources = c("Rural", "Urban", "All Rwanda")
+datalist = list()
+datalist = vector("list", length = length(Sources))
+for (i in Sources) {
+  data <- read_excel(filename, sheet=i, skip=3, col_names=TRUE)%>%
+    slice(-1,-20)%>%
+    rename(Province = "...1",
+           U_R = "...2",
+           COICOP = "...3",
+           Products = "...4")%>%
+    pivot_longer(!c(Province, U_R, COICOP, Products, Weights), names_to = "Date", values_to = "Index")%>%
+    mutate(Date = as.Date(as.numeric(Date), origin = "1899-12-30"),
+           Products = gsub("v", "", Products),
+           Products = str_squish(Products),
+           Year = year(Date),
+           Month = month(Date),
+           Source = i)
+  datalist[[i]] <- data}
+
+
+data <- read.csv('november.csv')%>%
+          filter(Source=="Rural")%>%
+          group_by(Products)%>%
+          arrange(Date)%>%
+          mutate(IndexLag = lag(Index),
+                 Inflation = ((IndexLag+Index)/IndexLag))
+
+
