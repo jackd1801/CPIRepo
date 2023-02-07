@@ -2,6 +2,12 @@ library('tidyverse')
 library('readxl')
 library('plotly')
 
+## Functions to load and clean Inflation data for use in shiny dashboard
+
+
+#Function to take input of the excel file containing the latest inflation data. The input is the excel file and the output is the combined dataframe.
+# It uses a for loop to read in the data from each source and clean the data.
+# It creates a monthly inflation figure and a yearly inflation figure centered on each month.
 
 
 inflation_data <- function(filename){
@@ -15,28 +21,40 @@ inflation_data <- function(filename){
              COICOP = "...3",
              Products = "...4") %>%
       pivot_longer(!c(Province, U_R, COICOP, Products, Weights), names_to = "Date", values_to = "Index") %>%
+      #Clean up date formatting, string formatting, and add columns for filtering
       mutate(Date = as.Date(as.numeric(Date), origin = "1899-12-30"),
-             Products = gsub("v", "", Products),
-             Products = str_squish(Products),
+             Product = gsub("v", "", Products),
+             Product = str_squish(Product),
+             Product = replace(Product, Product=="GENERAL INDEX (CPI)", "General Index"),
              Year = year(Date),
-             Month = month(Date, label = TRUE, abbr = FALSEs),
-             Source = i)%>%
-      group_by(Products)%>%
+             Month = month(Date, label = TRUE, abbr = FALSE),
+             Source = i,
+             Type="INF")%>%
+      #Generate monthly inflation column
+      group_by(Product)%>%
       arrange(Date)%>%
       mutate(IndexLag = lag(Index),
-             InflationMonth = ((IndexLag+Index)/IndexLag))%>%
+             Inflation = ((Index-IndexLag)/IndexLag))%>%
       ungroup()%>%
-      group_by(Products, )
-      select(Products, Weights, Date, Month, Year, Source, Inflation)
+      #Generate yearly inflation column
+      group_by(Product, Month, Source) %>%
+      arrange(Date)%>%
+      mutate(IndexMonthLag=lag(Index),
+             InflationMonth = (Index-IndexMonthLag)/IndexMonthLag)%>%
+      ungroup()%>%
+      select(Product, Weights, Date, Month, Year, Source, Inflation, InflationMonth, Type)
     datalist[[i]] <- data
   }
   combined_data = do.call(rbind, datalist)
   return(combined_data)
 }
 
+#Function to clean the data once the inputs have been selected in the app. The input is the dataframe and different variables to filter on, and the output is the filtered dataframe.
+#It selects the product, the sources to include, the year range, and a month if selected. 
+
 inflation_clean <- function(data, monthi, yeari, sourcei, producti){
   df <- data %>% 
-    filter(Products==producti) %>%
+    filter(Product==producti) %>%
     filter(Source %in% sourcei) %>%
     filter(Year >= min(yeari) & Year <= max(yeari))
   if (monthi %in% month.name){
@@ -45,13 +63,27 @@ inflation_clean <- function(data, monthi, yeari, sourcei, producti){
   return (df)
 }
 
-
+#Function to plot the data based on selected inputs. The input is a dataframe and the output is a plot.
+#If a single month has been selected then the plot uses the yearly inflation column, if no month is selected it uses the monthly values.
 
 inflation_plot <- function(data){
-  plot.title = unique(data$Products)
-  plot = plot_ly(data, x = ~Date, y = ~Inflation, type = 'scatter', mode = 'lines', color=~Source)%>%
-    layout(title = plot.title,
-           xaxis = list(title = ""),
-           yaxis = list (title = "Index, February 2014 = 100"))
+  #Generate plot title
+  plot.title = unique(data$Product)
+  #Identify number of unique months in dataframe
+  unique.months = unique(data$Month)
+  
+  if(length(unique.months) == 1){
+    plot = plot_ly(data, x = ~Date, y = ~InflationMonth, type = 'scatter', mode = 'lines', color=~Source)%>%
+      layout(title = paste("Inflation rate for", plot.title),
+             xaxis = list(title = ""),
+             yaxis = list (tickformat='.1%', title = "Inflation"),
+             legend = list(orientation='h', xanchor = "center", x = 0.45))
+  } else {
+    plot = plot_ly(data, x = ~Date, y = ~Inflation, type = 'scatter', mode = 'lines', color=~Source)%>%
+      layout(title = paste("Inflation rate for", plot.title),
+             xaxis = list(title = ""),
+             yaxis = list (tickformat='.1%', title = "Inflation"),
+             legend = list(orientation='h', xanchor = "center", x = 0.45))
+  }
   return (plot)
 }

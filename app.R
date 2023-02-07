@@ -1,50 +1,102 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+## CPI/Inflation Dashboard App
 
-rm(list=ls())
 
+##Import packages, including functions to work with CPI/Inflation data and functions to generate UI elements
 library(shiny)
 library(tidyverse)
 library(lubridate)
 library(plotly)
 source('Scripts/CPIfunctions.R')
+source('Scripts/InputFunctions.R')
+source('Scripts/InflationFunctions.R')
 
-filename = 'Data/CPI_time_series_November_2022.xls'
-data <- cpi_data(filename)
-year_range <- data %>% select(Year) %>% distinct()
-month_range <- c("No month selected", month.name)
-productc <- data %>% select(Products) %>% distinct()
-sourcec <- data %>% select(Source) %>% distinct() 
-sourcec <- as.vector(sourcec$Source) %>% as.list()
+#Import data to be used in dashboard
 
+#Latest file can be found at following link https://statistics.gov.rw/statistical-publications/subject/consumer-price-index-%28cpi%29
 
+filename = 'Data/CPI_time_series_December_2022.xls'
+CPIdata <- cpi_data(filename)
+INFdata <- inflation_data(filename)
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
-    titlePanel("CPI Data Rwanda"),
-    sidebarPanel(
-    selectInput("product", label = "Product", choices = productc , multiple=FALSE),
-    selectInput("month", label = "Month", choices = month_range, multiple=FALSE, selected="No month selected"),
-    checkboxGroupInput("source", label="Source", choices=sourcec, selected = sourcec, inline=TRUE),
-    sliderInput("years", "Years to show", min = min(year_range), max=max(year_range), value=c(min(year_range), max(year_range)), sep = ""),
-    width = 3),
-    mainPanel(plotlyOutput("plot1")
-              
+# Define UI for application - this has two tabs which each display a plot and a common header
+ui <- fixedPage(
+    #Title + Subtitle
+  
+    titlePanel(h4(titleText)),
+    tags$h5(subtitleText),
+    
+    #NISR logo 
+    
+    tags$div(style="position:absolute; right:150px; top:10px;", nisrLogo),
+    
+    #Tab panel
+    
+    tabsetPanel(
+      
+      #Tab panel 1 - CPI 
+      tabPanel("CPI", 
+               mainPanel(
+                 fixedRow(
+                   #Descriptive text
+                   column(6,
+                          introText
+                   ),
+                   #Right hand side inputs
+                   column(6,
+                          productInput(CPIdata),
+                          monthInput(CPIdata),
+                          sourceInput(CPIdata),
+                          align="centre"
+                   )
+                 ),
+                 fixedRow(
+                   #Year slider
+                   column(12, yearInput(CPIdata))
+                 ),
+                 fixedRow(
+                   #Plot for CPI data
+                   column(12,plotlyOutput("CPIplot"))
+                 ), width=12)
+    ),
+    
+    #Tab panel 2 - Inflation
+    tabPanel("Inflation", 
+             mainPanel(
+               fixedRow(
+                 #Descriptive text
+                 column(6,
+                        introText
+                 ),
+                 #Right hand side inputs
+                 column(6,
+                        productInput(INFdata),
+                        monthInput(INFdata),
+                        sourceInput(INFdata),
+                        align="centre"
+                 )
+               ),
+               fixedRow(
+                 #Year slider
+                 column(12, yearInput(INFdata))
+               ),
+               fixedRow(
+                 #Plot for Inflation data
+                 column(12,plotlyOutput("INFplot"))
+               ), width=12)
+    )
   ))
 
 
-# Define server logic required to draw a histogram
+# Define server logic for two plots
 server <- function(input, output) {
-    data1 <- reactive({cpi_clean(data, input$month, input$years, input$source, input$product)
-    })
-    
-    output$plot1<- renderPlotly({cpi_plot(data1())})
+    #CPI data cleaning
+    CPIdata_clean <- reactive({cpi_clean(CPIdata, input$CPImonth, input$CPIyears, input$CPIsource, input$CPIproduct)})
+    #Inflation data cleaning
+    INFdata_clean <- reactive({inflation_clean(INFdata, input$INFmonth, input$INFyears, input$INFsource, input$INFproduct)})
+    #CPI plot
+    output$CPIplot<- renderPlotly({cpi_plot(CPIdata_clean())})
+    #Inflation plot
+    output$INFplot <- renderPlotly({inflation_plot(INFdata_clean())})
     }
 
 # Run the application 
