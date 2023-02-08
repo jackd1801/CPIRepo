@@ -37,7 +37,7 @@ inflation_data <- function(filename){
              Inflation = ((Index-IndexLag)/IndexLag))%>%
       ungroup()%>%
       #Generate yearly inflation column
-      group_by(Product, Month, Source) %>%
+      group_by(Product, Month) %>%
       arrange(Date)%>%
       mutate(IndexMonthLag=lag(Index),
              InflationMonth = (Index-IndexMonthLag)/IndexMonthLag)%>%

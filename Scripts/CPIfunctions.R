@@ -23,7 +23,6 @@ cpi_data <- function(filename){
       #Clean up date formatting, string formatting, and add columns for filtering 
       mutate(Date = as.Date(as.numeric(Date), origin = "1899-12-30"),
              Product = gsub("v", "", Products),
-             Product = str_replace_all(Product, "GENERAL INDEX (CPI)", "General Index"),
              Product = str_squish(Product),
              Product = replace(Product, Product=="GENERAL INDEX (CPI)", "General Index"),
              Year = year(Date),

@@ -1,6 +1,5 @@
 ## CPI/Inflation Dashboard App
 
-
 ##Import packages, including functions to work with CPI/Inflation data and functions to generate UI elements
 library(shiny)
 library(tidyverse)
@@ -18,7 +17,7 @@ filename = 'Data/CPI_time_series_December_2022.xls'
 CPIdata <- cpi_data(filename)
 INFdata <- inflation_data(filename)
 
-# Define UI for application - this has two tabs which each display a plot and a common header
+# Define User Interface for application - this has two tabs which each display a plot and a common header
 ui <- fixedPage(
     #Title + Subtitle
   
@@ -39,14 +38,14 @@ ui <- fixedPage(
                  fixedRow(
                    #Descriptive text
                    column(6,
-                          introText
+                          introTextCPI
                    ),
                    #Right hand side inputs
                    column(6,
                           productInput(CPIdata),
                           monthInput(CPIdata),
                           sourceInput(CPIdata),
-                          align="centre"
+                          align="center"
                    )
                  ),
                  fixedRow(
@@ -65,7 +64,7 @@ ui <- fixedPage(
                fixedRow(
                  #Descriptive text
                  column(6,
-                        introText
+                        introTextINF
                  ),
                  #Right hand side inputs
                  column(6,
