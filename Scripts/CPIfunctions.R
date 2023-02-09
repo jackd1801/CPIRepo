@@ -13,16 +13,13 @@ cpi_data <- function(filename){
   Sources = c("Rural", "Urban", "All Rwanda")
   datalist = list()
   for (i in Sources) {
-    data <- read_excel(filename, sheet=i, skip=3, col_names=TRUE) %>%
-      slice(-1,-20) %>%
-      rename(Province = "...1",
-             U_R = "...2",
-             COICOP = "...3",
-             Products = "...4") %>%
-      pivot_longer(!c(Province, U_R, COICOP, Products, Weights), names_to = "Date", values_to = "Index") %>%
+    data <- read_excel(filename, sheet=i, range="D4:FP23", col_names=TRUE) %>%
+      slice(-1) %>%
+      rename(Product = "...1") %>%
+      pivot_longer(!c(Product, Weights), names_to = "Date", values_to = "Index") %>%
       #Clean up date formatting, string formatting, and add columns for filtering 
       mutate(Date = as.Date(as.numeric(Date), origin = "1899-12-30"),
-             Product = gsub("v", "", Products),
+             Product = gsub("v", "", Product),
              Product = str_squish(Product),
              Product = replace(Product, Product=="GENERAL INDEX (CPI)", "General Index"),
              Year = year(Date),
@@ -62,3 +59,11 @@ cpi_plot <- function(data){
   return (plot)
 }
 
+
+#Function which combines cpi_clean and cpi_plot to take the data, month, year, source and product as inputs and outputs a completed plot
+
+cpi_analysis <- function(data, monthi, yeari, sourcei, producti){
+  clean_data <- cpi_clean(data, monthi, yeari, sourcei, producti)
+  plot_data <- cpi_plot(clean_data)
+  return (plot_data)
+}
