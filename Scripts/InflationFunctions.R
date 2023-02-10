@@ -14,16 +14,13 @@ inflation_data <- function(filename){
   Sources = c("Rural", "Urban", "All Rwanda")
   datalist = list()
   for (i in Sources) {
-    data <- read_excel(filename, sheet=i, skip=3, col_names=TRUE) %>%
-      slice(-1,-20) %>%
-      rename(Province = "...1",
-             U_R = "...2",
-             COICOP = "...3",
-             Products = "...4") %>%
-      pivot_longer(!c(Province, U_R, COICOP, Products, Weights), names_to = "Date", values_to = "Index") %>%
+    data <- read_excel(filename, sheet=i, cell_limits(c(4, 4), c(NA, NA)), col_names=TRUE) %>%
+      slice(-1, -20) %>%
+      rename(Product = "...1") %>%
+      pivot_longer(!c(Product, Weights), names_to = "Date", values_to = "Index") %>%
       #Clean up date formatting, string formatting, and add columns for filtering
       mutate(Date = as.Date(as.numeric(Date), origin = "1899-12-30"),
-             Product = gsub("v", "", Products),
+             Product = gsub("v", "", Product),
              Product = str_squish(Product),
              Product = replace(Product, Product=="GENERAL INDEX (CPI)", "General Index"),
              Year = year(Date),
@@ -73,17 +70,24 @@ inflation_plot <- function(data){
   unique.months = unique(data$Month)
   
   if(length(unique.months) == 1){
-    plot = plot_ly(data, x = ~Date, y = ~InflationMonth, type = 'scatter', mode = 'lines', color=~Source)%>%
-      layout(title = paste("Inflation rate for", plot.title),
-             xaxis = list(title = ""),
-             yaxis = list (tickformat='.1%', title = "Inflation"),
-             legend = list(orientation='h', xanchor = "center", x = 0.45))
+    plot = plot_ly(data, x = ~Date, y = ~InflationMonth, type = 'scatter', mode = 'lines', color=~Source)
   } else {
-    plot = plot_ly(data, x = ~Date, y = ~Inflation, type = 'scatter', mode = 'lines', color=~Source)%>%
-      layout(title = paste("Inflation rate for", plot.title),
-             xaxis = list(title = ""),
-             yaxis = list (tickformat='.1%', title = "Inflation"),
-             legend = list(orientation='h', xanchor = "center", x = 0.45))
+    plot = plot_ly(data, x = ~Date, y = ~Inflation, type = 'scatter', mode = 'lines', color=~Source)
   }
+  
+  plot = plot %>% 
+          layout(title = paste("Inflation rate for", plot.title),
+                  xaxis = list(title = ""),
+                  yaxis = list (tickformat='.1%', title = "Inflation"),
+                  legend = list(orientation='h', xanchor = "center", x = 0.45))
+  return (plot)
+}
+
+
+#Function which combines cpi_clean and cpi_plot to take the data, month, year, source and product as inputs and outputs a completed plot
+
+inflation_analysis <- function(data, monthi, yeari, sourcei, producti){
+  clean_data <- inflation_clean(data, monthi, yeari, sourcei, producti)
+  plot <- inflation_plot(clean_data)
   return (plot)
 }
