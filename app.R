@@ -88,14 +88,10 @@ ui <- fixedPage(
 
 # Define server logic for two plots
 server <- function(input, output) {
-    #CPI data cleaning
-    CPIdata_clean <- reactive({cpi_clean(CPIdata, input$CPImonth, input$CPIyears, input$CPIsource, input$CPIproduct)})
-    #Inflation data cleaning
-    INFdata_clean <- reactive({inflation_clean(INFdata, input$INFmonth, input$INFyears, input$INFsource, input$INFproduct)})
-    #CPI plot
-    output$CPIplot<- renderPlotly({cpi_plot(CPIdata_clean())})
-    #Inflation plot
-    output$INFplot <- renderPlotly({inflation_plot(INFdata_clean())})
+    #CPI data cleaning + plot output
+    output$CPIplot <- renderPlotly({cpi_analysis(CPIdata, input$CPImonth, input$CPIyears, input$CPIsource, input$CPIproduct)})
+    #Inflation data cleaning + plot output
+    output$INFplot <- renderPlotly({inflation_analysis(INFdata, input$INFmonth, input$INFyears, input$INFsource, input$INFproduct)})
     }
 
 # Run the application 
