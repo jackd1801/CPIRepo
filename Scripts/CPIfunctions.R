@@ -13,8 +13,8 @@ cpi_data <- function(filename){
   Sources = c("Rural", "Urban", "All Rwanda")
   datalist = list()
   for (i in Sources) {
-    data <- read_excel(filename, sheet=i, range="D4:FP23", col_names=TRUE) %>%
-      slice(-1) %>%
+    data <- read_excel(filename, sheet=i, range=cell_limits(c(4, 4), c(NA, NA)), col_names=TRUE) %>%
+      slice(-1, -20) %>%
       rename(Product = "...1") %>%
       pivot_longer(!c(Product, Weights), names_to = "Date", values_to = "Index") %>%
       #Clean up date formatting, string formatting, and add columns for filtering 

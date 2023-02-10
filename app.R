@@ -83,18 +83,20 @@ ui <- fixedPage(
                  column(12,plotlyOutput("INFplot"))
                ), width=12)
     )
-  )
-)
+  ))
 
 
 # Define server logic for two plots
 server <- function(input, output) {
-    #CPI data filter + plotting
-    output$CPIplot<- renderPlotly({cpi_analysis(CPIdata, input$CPImonth, input$CPIyears, input$CPIsource, input$CPIproduct)})
-    #Inflation data filter + plotting
-    output$INFplot <- renderPlotly({inflation_analysis(INFdata, input$INFmonth, input$INFyears, input$INFsource, input$INFproduct)})
-}
-
+    #CPI data cleaning
+    CPIdata_clean <- reactive({cpi_clean(CPIdata, input$CPImonth, input$CPIyears, input$CPIsource, input$CPIproduct)})
+    #Inflation data cleaning
+    INFdata_clean <- reactive({inflation_clean(INFdata, input$INFmonth, input$INFyears, input$INFsource, input$INFproduct)})
+    #CPI plot
+    output$CPIplot<- renderPlotly({cpi_plot(CPIdata_clean())})
+    #Inflation plot
+    output$INFplot <- renderPlotly({inflation_plot(INFdata_clean())})
+    }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
