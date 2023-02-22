@@ -13,7 +13,7 @@ source('Scripts/InflationFunctions.R')
 
 #Latest file can be found at following link https://statistics.gov.rw/statistical-publications/subject/consumer-price-index-%28cpi%29
 
-filename = 'Data/CPI_time_series_December_2022.xls'
+filename = 'Data/CPI_time_series_January_2023.xls'
 CPIdata <- cpi_data(filename)
 INFdata <- inflation_data(filename)
 
